@@ -1,0 +1,215 @@
+---
+id: sherlock-implement
+title: Sherlock Implementation Plan
+sidebar_label: Implementation Plan
+---
+
+## Task 1 - Initiation
+
+### Project Kickoff Meeting
+
+The project kickoff meeting will allow for the determination of the scope and
+targeting of specific user groups for input during the initiation phase.
+The implementation plan will be recorded in this document.
+
+#### Project Tracking
+
+The project progress will be tracked via Jira. Currently Parent tasks have been defined
+with estimates. A refined lower level serives of task estimates will be produced as part
+of the systems design phase
+
+#### Project Documentation
+
+Where Feasible documentation will be hosted on the C-Core docs site this will allow
+easier management of project as living document through simple markdown text
+
+#### Collaboration Engagement
+- Arctic UAV may be able to provide some drone data we will most likely engage with
+during user systems design phase
+
+#### Discussion Points
+
+#### Deliverable Items
+-   Open source library for the generation of STAC data from other metadata sources.
+-   Should include infrasture setup dockerfiles as well so that in theory others
+could host their own verison
+-   Workshop on usage of completed platform
+-   Best practices and tutorial content
+
+
+
+### User Needs
+
+The user needs assessment is intended to engage our targeted user groups and find out
+what types of data we should look at including by finding out what data is currently in
+use, what data is difficult to work with and which ones are ignored due to access
+difficulties.
+
+#### Format
+
+User needs assessment will be done by selecting representative of various engagement sectors and interviewing them using a shared
+ questionnaire. This will help drill down on most import and data sources and what type of interface experience to prioritize
+ In order to focus these sessions, existing data portal UIs will be used to determine desired features.
+ Chris Hardy and Chris Boyce (Spatial Integrity) will provide a list of contacts representing the targeted user groups.data
+ It is expected that the interviews themselves should take about an hour per user group.
+
+ Once interviews are complete, a list of targeted data sources can be generated in order to guide development and design tasks.
+
+
+
+#### Initial format exploration (Internal Only)
+| Data Source | Organization | Source Type | Integration Method |
+|-------------|--------------|-------------|--------------------|
+| **Landsat**     | USGS         |  AWS s3     | Relative Catalog Link KGD|
+| Sentinel    | ESA          |  AWS s3     | Conversion to STAC    |
+| Ice Charts  | CIS          |  FTP        | Manually register data for format conversion, ingestion addition to STAC                   |
+| **Geobase/open.canada.ca**     | NRCAN        |  CKAN        | Manually registered indexed in place                   |
+| River Ice   | C-CORE       |  STAC       | Relative Catalog Link to KGD       |
+| Web Data    | University, Government, and Open Data Portals   |  Known Data Types  | Curated results from domain restricted web crawl or spatial data types to register in dynamic STAC
+| **RPA Data**    | Arctic UAV   | Tif         | Unknown                   |
+| **GHG Sat**     | GHG SAT LTD  | Tif         | Unknown                   |
+| AIS Data    | Unknown      | Unknown     | Unknown
+
+Some other Sources that were discussed but are not primary focus
+    - S2 (already an library to create stac entries)
+    - RCM? could be excellent to get ahead of this, would result creating something new.
+
+### Examine Existing Standards
+This work item represents taking the targeted data sources and determining how to
+make STAC entries for them. Simple one and done STAC generation from native metadata
+format.
+
+
+ #### Discussion Points
+
+- This will hopefully end up with us finally committing to a common STAC generation method.
+- Part of the proposal discusses that our cataloging code will be open source.
+
+
+### Data Cataloging Requirements
+
+Because the data exists in a structured, stable format we can skip the requirement of
+building the static STAC items can be omitted.
+
+#### Cataloging Open Portal Data - Open.Canada.ca
+
+The Canadian Federal open data portal is hosted using [CKAN](ckan.org). As part of this
+solution a data access api is provided. This appears to be a moderately popular format for hosting government open data so any effort here may be easily transferrable.
+
+Because the we can extract metadata using this api it should be possible to generate our
+search indices by using a conversion function that will iterate over the datasets in the open portal.
+For this project we will focus on SHP files, which as of 2020-06-20 has 4595 entries where the format is "SHP"
+of these initial investigations show that 95% contain a "spatial" attribute which stores a json dump of a polygon.
+
+Loading the dataset into the index will consist of the following steps:
+1. query record sets
+2. for each record query the item reference
+3. convert from CKAN json result to STAC by remapping attributes
+4. push the modified record into the elastic instance.
+
+For the individual entries generated from the open data portal. It appears that the majority of the entries are singular datasets with no clearly identifiable grouping attribute.
+In this case, in order to combine what would be collection level metadata and item level metadata we can use the
+[Single File Stac Extension](https://github.com/radiantearth/stac-spec/tree/master/extensions/single-file-stac)
+
+
+### Cataloging an existing STAC catalog - Landsat
+
+The USGS has made a significant effort in creating and maintaining an enormous catalog of ARD for the Landsat Satellite
+As part of this effort a [STAC catalog](https://landsat-stac.s3.amazonaws.com/catalog.json) was created.
+Because the data is in a deliverable format and the metadata is in our targeted format,
+the STAC entries can be loaded directly into the elastic instance.
+
+
+### Creating a catalog from provided assets - GHG and Arctic UAV
+
+Two of the named collaborators on the Sherlock project are Arctic UAV and GHGSat both
+of which are data providers, that do not have a readily apparent metadata organization
+structure. Additionally Sherlock or a hosting organization will have to manage the
+hosting of the data itself. Additionally these providers will likely require increased
+rigor in the securing of their data assets, which are for commercial purposes. The primary usage of these datasets
+will likely be through recommendations, weighted heavily by AOI for Arctic UAVs, and by Theme for GHGSat.
+Catalog entries can be generated from a base template including sensor, provider and
+keyword information and then minimal additional metadata.
+
+### System Design
+
+This activity allows us to plan put together a full low level implementation plan.
+Items to be created include locations of all data stores,
+api endpoints, intermediate data locations, containerized applications to support the searchability, discoverability, and interoperability of datasets.
+
+##### Considerations
+- The ongoing costs associated with hosting the elastic instances should be considered which is proportional to the amount of data in the search engine.
+- Using event driven communication between components can result in undesirable vendor lock in. Where feasible we should look to communicate with http calls
+rather than relying on platform internal pub/subs, event triggers, etc
+
+
+Elastic Instance Costs
+- Attempting cost parity by estimating appbase costing using AWS Pricing calculations using 1 master and n node servers.
+
+|Location|Package|Nodes|CPU|Memory|Storage|Cost|
+|--------|-------|-----|---|------|-------|----|
+|appbase.io| Sandbox|1|2|4 GB |30 GB| $49 |
+|appbase.io| Starter|3|2|4 GB |40 GB| $149 |
+|appbase.io| Production|3|4|16 GB |480 GB| $799 |
+|appbase.io| Production|3|16|64 GB |999 GB| $3199 |
+|AWS elastic search | t2.medium.elasticsearch|1|2|4 GB| 30 GB| $110.30|
+|AWS elastic search | t2.medium.elasticsearch x 3|3|2|4 GB| 40 GB| $233.30|
+|AWS elastic search | m4.xlarge.elasticsearch x 3|3|4|16 GB| 480 GB| $865.10|
+|AWS elastic search | m4.4xlarge.elasticsearch x 3|3|16|64 GB| 999 GB| $2,970.36|
+
+
+#### Searchability
+
+1. Dynamic catalog
+  - STAC API endpoint
+  - Document Based storage
+  - Authorization requirements
+  - Generic Metadata to STAC conversion library
+  - Metadata to STAC api consider dynamic creation of stac items instead of hosting static?
+
+2. Elastic search index
+  - Elastic Search Data stores
+  - Elastic search API
+  - If we focus on Landsat we can load some of the catalog into the elastic index reducing dependence on conversions during search api development.
+
+3. Web Client?
+
+#### Discoverability
+
+1. Search Result UI
+  - AOI, date range, data tags key themes?
+  - Faceted Search
+  - Display Tags
+  - Grouping Results
+  - Several UI components.
+
+
+
+2. Recommendations
+  - Related data api? (Would reduce amount of data to send to client)
+  - Related data algorithm
+    - we can look to do enhanced tagging of various datasets by fusing with larger course grained classifications ie OSM or AVHRR this would be part of the generation phase
+    - Additionally looking at relation by geolocation, however that would most likely just use aoi proximity
+    - How does STAC support keyword tagging, is there a extension?
+  - Premium data tie-ins (RPA, GHGSat, FloeEdge)
+
+
+#### Interoperability
+
+1. Container curation api
+ - Central data store of curated containers
+ - consume STAC items
+ - Curated container API
+ - Host on dockerhub/ public AWS ECR so they can be distributed
+ - Hosted APIs for instances would most likely not be part of the geoconnections scope but under C-CORE platform plan
+ - Are we providing upload location for peoples hosted containers?
+ - Transformers supporting S3, gcp, local output locations
+ - What does we call these transformers?
+ - Methodology for adding external transformers into the C-CORE registry will be manual.
+
+2. Interoperability Web UI
+  - Transformer availability ties in to search results?
+  - Simple browser?
+
+
+

@@ -1,0 +1,104 @@
+---
+id: sherlock-authorization
+title: Sherlock Authorization Strategy
+sidebar_label: Authorization
+---
+import useBaseUrl from '@docusaurus/useBaseUrl'
+
+
+## Introduction
+
+Authorization for the Sherlock platform was designed with the following use cases.
+- Individual User Read Access
+- Group Member Read Access
+- Global Data Write Access
+- User Management Admin Access
+
+Initial design of the sherlock platform is focused around having the same data access for all
+users but to be easily able to transition into fine grained data access should a use case arise.
+
+Authentication levels will control following
+- Web Client SignIn
+- Client API Access
+- Public API Access
+- User Management
+
+#### Inidividual User Read Access
+This will be handled by A simple self sign up that will add the signed up user to a USER pool. This will grant access to all public data in the catalog.
+
+#### Group Member Read Access
+In order for group enrollment an internal admin portal will be able to create and distribute accounts to a pool of users with their own user group that will consist of public data plus organizations private data
+
+#### Global Write access
+Initially all publication to the catalog will be performed by a user within the publisher role. Further development would allow for per dataset write access but to simplify the number of user groups at this time it was determined a single group would suffice.
+
+#### User Management Admin Access
+Admin Users will be able to invite new users, add them to organizational pools and assign the data read permissions that are available to different user groups.
+
+## Security Implementation for Geoconnections
+
+The chosen solution for security was AWS Cognito as it was a fully featured authorization solution that the development had familiarity with.
+
+The basic security model uses the option of email password authentication or the use of a google ID.
+Social ID was chosen as it would be more convenient for end users. And email based authentication was added because it works well with organizational access.
+
+Access is controlled via Tokens. Contained within the tokens there are the following attributes which control access:
+
+1. SCOPES - Individual permissions that are best suited to simple behaviour such as pass/fail access.
+    - simple attributes that define allowed behaviour such as:
+        - search-access
+        - collections-read
+
+2. GROUPS - A list showing the membership of the signed in account that ties back to identity so that the IAM role associated with the group provides explicit resource access.
+    - cognito:groups
+        - collection of groups that the user is a member of such as:
+            - Admin
+            - SherlockUsers
+            - SherlockPublisher
+            - OrganizationMember
+
+These tokens are then handed off to apis with 2 access control attributes
+
+
+
+## Auth System Interal Components
+USER POOL - a common pool of users that all sign in in the same matter
+
+USER GROUP - a collection of rules that can be shared by members added to it
+
+APP Client - a way of signing in using credentials in the user pool, can have unique scopes
+
+IDENTITY POOLS - a way of accessing AWS resources based on signed in user information
+
+
+## Handing different Authorization requirements
+
+- Fully Public vs Global Application vs Private data access:
+  -   Fully public data is achieved by having no read restrictions on the hosted data and is viewable by anyone, anywhere.
+     Global Application data is viewable to users that have an account in the user pool and are signed it. Access is granted by the identify pool.
+     Private data is viewable only to users that are added to a user group. The user group has an explicit rule that permits access to a private resource.
+     When the private data is requested the identity of the requester is checked by the Identity pool before granting access.
+
+- Group based data access
+    - Core concept of Authorization is that users belong to one or more groups that have access rules.
+    These rules are not unique so the same data access rules can be applied to multiple groups
+    Collections of data have a rule created for them that grants access to the collection as a whole and this is then applied to the group.
+    Any user in a group will be able to read all data that the group has been granted access too.
+
+- Sharing data access across applications
+   - Sharing data access can be done by having multiple interfaces request authentication against the same user pool. The simplest case of this would be to just use the same application client
+- Temporary access to data products.
+   - Temporary access can be granted to anyone by granting a pre-signed url which has self contained time restricted access in the url itself.
+
+- Applications with different signin/signup requirements
+  - Each user pool has its own immutable set of user requirements. To have the same data rules applied across different applications a new user pool can be created that sets it's own user reqs such as
+  - Required attributes for sign up
+  - Password rules
+  - Username/email mfa configurations
+  - Federated social Logins
+These new user pools can then share the groups roles and identity pools that were created previously
+
+
+- Applications that require communication to external services.
+  - Configuration of external service access can be managed using custom scopes within the application client. This could be for controlling API access or on demand services.
+  If we had a situation where we need different sets of external scopes we can spawn multiple Application Clients.

@@ -1,0 +1,234 @@
+---
+id: sherlock-user-needs
+title: User Needs Responses
+sidebar_label: User Needs Responses
+---
+
+
+# Earth Observation Specialists
+
+## Responses
+
+### GIS Specialist
+
+
+#### What types/volumes of data would need to go into cloud storage vs what could be referenced in its original location?
+
+1. Image data:
+- Everything that can be referenced in its original location via download link should be, to minimize the amount of space needed on the cloud
+  - This includes Sentinel-1, RCM, and optical like Sentinel-2 and Landsat.
+  - Sentinel-1 makes up the bulk of what we process for many operational services, so this would significantly decrease storage space needed provided they are references properly
+  - Imagery that is ordered commercially (CSK, TSX, VHR optical, etc.) stored on the cloud with appropriate permissions/security
+    - This imagery is not ordered very often, but file sizes for some VHR images can be quite big depending on the image type/number of bands.
+    - On average we probably order only about 20 commercial scenes a year, +/- 5ish. Could be higher if there is a monitoring service with daily monitoring
+2. Project data:
+- File sizes will be very small for most operational projects, research projects spanning several years will likely have larger file sizes and number of files
+- File types I can think of off the top of my head include
+  - shapefiles
+  - jpegs/pngs
+  - videos [for example the river ice webcam videos](https://www.mae.gov.nl.ca/wrmd/adrs/v6/webcam/GooseRiver_Webcam.avi)
+  - templates used for the generation of data products.
+
+
+#### How often would data need to be retrieved?
+- Image data would rarely need to be retrieved maybe a few times after the project is completed. Archive requests have become less frequent as the number of commercial imagery ordered decreases
+-  Project data is variable, for operational services like river ice, perhaps every year. For other one-off projects it will be less often.
+
+#### Does data need to be available immediately or is a short retrieval wait time acceptable?
+- The short retrieval times you mentioned in the meeting are fine for archive image searches. Within the same working day is fine
+- For project data I would think for operational services almost immediately would be ideal, but for other projects I think a wait time is fine. It is comparable with me having to hunt down blu-rays from myself, Mike, getting Mark to check his computer, etc. to bring everything all together. I don’t see an issue with a small wait time.
+
+#### How would you approach retrieving data from the archive? How would you search for a past product or dataset?
+
+I think we should be able to narrow down searches by some or all of the parameters of imagery, including project number. Main things I always make sure to include are:
+  - Project number
+  - General project type/goal
+   (i.e. iceberg detection, river ice monitoring, pipeline monitoring, etc.)
+  - Acquisition date, time (UTC)
+  - Satellite
+  - Beam, and beam mode
+  - Polarization
+  - LUT (where applicable)
+  - Location (in general; i.e. Churchill River)
+
+It would be great if we could incorporate the corner coordinates/frame of the image in question, so then a search can be done geographically (and not having to rely on the known location entered in the catalog, or if that is vague such as offshore NL) and whatever we have will show with footprints. Then can retrieve only what is needed, as in some cases ‘Churchill River’ refers to several parts of the river
+
+It would be nice if we could search either geographically OR by specific image details, such as:
+ - CSK HR-02 images,
+ - RADARSAT-2 Fine images
+ -  etc.
+
+ For project data I have always backed up by project type (i.e. Icebergs, River ice, etc.)
+ However I think including Project Number is important in case there are any that overlap.
+ For example on the Churchill River there is river ice monitoring, GPR work, SIMBA, etc.
+ They’re all ON the Churchill river, and all related to river ice monitoring,
+ however the applications might be valuable for other projects in the future and so being
+ able to easily search for ‘GPR’ or ‘SIMBA; might also be useful.
+ Thinking long term having a catalog that is easily cross referenced.
+
+- Project number 100% needs to be included in everything that is backed up somewhere, as it relates to how the company keeps track of projects, how they are backed up on SVN, how IT sets up folders on memscale, etc. We need to be able to reference those other locations if for example we find shapefiles from 5 years ago for the Churchill, and want to see what reports were sent that year. Very easy to do that if the project number is integrated.
+
+What are good search features you've seen on other platforms?
+- Searching geographically it is nice to be able to drag/draw a search AOI, and/or ability to import AOI
+- Able to search by project number, or application, along with all the other image specifics.
+- Good search platforms are usually intuitive and have
+    - easy to change parameters
+    - quick to search
+    - results make sense when showing footprints
+    - highlight selected item in the list of results on the map
+- Bonuses would be :
+  - Ability to export search results with all details as a spreadsheet/csv, which includes download link for freely available data. This would make it very easy for me to do archive search and send the results to whoever requested it
+  - Ability to export resulting frame extents (if we can get them in the catalog) as a .shp/.kmz
+
+### Remote Sensing/GIS Operations Manager
+
+#### What types/volumes of data would need to go into cloud storage vs what could be referenced in its original location?
+
+For the River Ice side of EO I’d like to store all of our shape files dating back to 2006, eventually.
+ The average size of these are between 500Kb and 1Mb.
+ You can get a more accurate picture from the data on AWS there now for the 2018 and 2019 data. Those years are full data sets.
+
+A lot of our image data sits on DVDs and blu-rays and they can stay there.
+Image data from the last few seasons can be retrieved from Amazon (Sentinel) or R2 that Orderdesk is storing (or not).
+ All R2 images for river ice were acquired through Public Safety Canada in the last several years and are to be destroyed after we are done with them.
+ The future is with RCM so if R2 is not stored I am ready to move on.
+
+#### How would you approach retrieving data from the archive? How would you search for a past product or dataset?
+
+As for access to the shape files I think the best method is what has been set up for the [Churchill River](https://www.churchillriver.app).
+There are links to view the shape files in the app and download.
+Additional Rivers that are not set up as an app should be created at least for internal use.
+ We can pitch these ideas to clients to generate interest in providing it as a value added product. If not, we can use it for data access and review.
+ These are very valuable for looking for historical trends of ice cover, freeze-up, break-up and so on.
+ The creation and maintain these apps would be something that could be considered as part of the river ice projects.
+
+Concerning retrieval, does it count as a retrieval if we are viewing the data through the apps?
+ Short term retrieval would be fine if it was a day or two.
+
+Searching for data would rely on date.
+The file names have everything we need such as:
+- sensor
+- date
+- river
+
+#### Interview Responses
+1. What is your Role
+    - Operations Manager
+
+2. Why do you search for Geospatial Data:
+    - To Provide services (River Ice, Icebergs)
+    - Research
+    - Project Work
+
+3. What types of data do you use:
+ - [x] Satellite
+ - [ ] Drone
+ - [ ] Vector
+ - [x] Raster
+ - [x] Free
+ - [x] Commercial
+
+4. How do you typically search for data (Ranked)?
+  - online search
+  - Google
+  - bulk download tools
+  - USGS
+  - Service provider GUI
+
+5. What difficulties do you have in finding Data (Ranked)
+
+- finding is easy but getting is hard, e.g. bulk download
+- hit wall on vertices in polygon selection
+- Have to go to so many different places, quality varies, govt stuff first  (e.g. vector data for shorelines for example)
+- Usually have to download other data to validate vector data e.g. use ls/S1-2 to validate shorelines
+
+6. Where do you go to get Geospatial Data (Ranked)?:
+- SciHub  Sar and optical in one spot
+- PEPS - good if you need something in a hurry
+- AWS -Roda
+- Geogratis
+- Earth Explorer - USGS -- lots of good data.
+
+7. How often do you combine data from different sources fro the same activity?:
+- Often
+- USGS and ESA and Canadian Government -- Satellite stuff we combine all the time
+
+#### User Needs Assessment Notes
+
+GWN:
+
+- The ability to quickly use extent as search bounds provides QoL
+- Vector Data portals often provides too much data which is hard to find relevant results.
+- Locking data behind specific keywords makes it harder to navigate.
+- Theme boiled down to nature of data (Terrain, SAR, Imagery...)
+- Search Story is Geospatial search first then facets would be most useful.
+    - Extent, digitize poly good.
+    - Upload file painful.
+    - Coordinates hae limited use
+    -  Geolocation uninteresting
+ Prefers to want to set a high level search and explore within.
+- Rating Scheme could help in finding data
+- Attributes that help determine data quality:
+  - If data is validated
+  - Data source
+  - Updated date
+  - Extent
+  - Data format/type
+
+CEH:
+
+Geogratis has too many result options us a last resort - it is an enormous site
+EODMS/Scihub AOI select:
+- zoom to select data
+- right click
+- right click to start a redraw
+
+EODMS has a 24 hour button to filter new data, really convenient feature
+
+On Theme:
+- if you want terrain, I don't want slope, ….narrow down data sets
+- love the facet search -- gave example saying it should be like shopping being able to refine or reset selections easily
+- e.g. USGS -- SRTM - 1 second   -- easily find
+- has to be more specific,  too high level not that useful
+  - river ice:
+    - classification
+    - thickness
+    - jams
+    - thermal
+  - terrain
+    - slope
+
+On Raster:
+- shp file is most common, they can convert files themselves
+- geotiff
+
+On Defining AOI:
+- enter coords not used as often, but need to have as an option
+- people are always  in hurry , do not want long strings up load
+- quick and dirty , and refine
+- like the check
+- geolocation not a priority
+- user should be able to search, see results then refine aoi
+
+Define date should use a range with option to just pick a day when image is known.
+
+Result Features:
+- most popular download
+- rating scheme
+
+- date the data was created important data to ensure quality
+Offshore oil spill vs. onshore oilspill
+
+On Downloading:
+- quick - fast download, and more quickly available
+- performance indicator of source provider, health indicator of service
+- connections breaks are an issue if download is slow.
+
+
+## Data Provider Responses
+
+### Analytic Development team
+
+Interview with this group different in that they are looking at using tools to view data internally for developing analytic products.  Currently this team is using ESRI solutions.  They are investing R&D solely on alorithms and therefore decided to go with off the shelf solution.  They have an operations group that we will engage to understand the operational requirements.
+
+
